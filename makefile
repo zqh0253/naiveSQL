@@ -1,2 +1,2 @@
-res.exe : Minisql.cpp Interpreter.cpp  
-	g++ Minisql.cpp Interpreter.cpp -o res -std=c++11
+res.exe : Minisql.cpp Interpreter.cpp  Head.cpp
+	g++ Head.cpp Minisql.cpp Interpreter.cpp  -o res -std=c++11
