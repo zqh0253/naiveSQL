@@ -1,6 +1,7 @@
 #include<iostream>
 
 #include "Interpreter.h"
+#include "Api.h"
 #include "Head.h"
 
 using namespace std;
@@ -27,9 +28,15 @@ void Interpreter::split(string sql){
 			is_end = 1;
 			return;
 		}
-		if (!(sql[i]==' ' || sql[i]=='(' || sql[i]==')' || sql[i]==',')){
+		if (sql[i]=='=' || sql[i]=='>' || sql[i]=='<'){
 			int start_loc = i;
-			while(!(sql[i]==' ' || sql[i]=='(' || sql[i]==')' || sql[i]==',' || sql[i]==';'))
+			while (sql[i]=='=' || sql[i]=='>' || sql[i]=='<') i++;
+			i--;
+			tokens.push_back(sql.substr(start_loc,i-start_loc+1));
+		}
+		else if (!(sql[i]==' ' || sql[i]=='(' || sql[i]==')' || sql[i]==',')){
+			int start_loc = i;
+			while(!(sql[i]==' ' || sql[i]=='(' || sql[i]==')' || sql[i]==',' || sql[i]==';' || sql[i]=='<' || sql[i]=='=' || sql[i]=='>'))
 				i++;
 			i--;
 			tokens.push_back(sql.substr(start_loc,i-start_loc+1));
@@ -62,7 +69,7 @@ void Interpreter::execute(string sql){
 						if(tokens[i+1]=="int"||tokens[i+1]=="float"){
 							attributes.push_back(Form(tokens[i],
 													  tokens[i+1]=="int"?INT_TYPE:FLOAT_TYPE,
-													  0,(tokens.size()>i+2 && tokens[i+2]=="unique"),0));
+													  0,(tokens.size()>i+2 && tokens[i+2]=="unique"),0,0));
 							i+=(2+(tokens.size()>i+2 && tokens[i+2]=="unique"));
 						}
 						else if(tokens[i+1]=="char"){
@@ -70,13 +77,13 @@ void Interpreter::execute(string sql){
 								throw "Too short2";
 							attributes.push_back(Form(tokens[i],
 													  CHAR_TYPE,
-													  atoi(tokens[i+2].c_str()),(tokens.size()>i+3 && tokens[i+3]=="unique"),0));
+													  atoi(tokens[i+2].c_str()),(tokens.size()>i+3 && tokens[i+3]=="unique"),0,0));
 							i+=(3+(tokens.size()>i+3 && tokens[i+3]=="unique"));
 						}
 						if (i==tokens.size()-3) break;
 					}
 					int flag = 1;
-					for (auto &x : attributes){
+					for (auto &x: attributes){
 						if (x.name==tokens[tokens.size()-1]){
 							x.primary = 1;
 							flag = 0;
@@ -84,14 +91,16 @@ void Interpreter::execute(string sql){
 					}
 					if (flag) throw "No primary key founded!";
 					
-					//api->create_table
+					
 					for (auto x :attributes){
 						x.ptr();
 					}
-
+					//Api::create_table(attributes);
 				}
 				else if (tokens[1]=="index"){
-
+					if (tokens.size()!=6) throw "Syntax error";
+					cout << tokens[2]<<" "<<tokens[4]<<" "<<tokens[5];
+					// Api::create_index(tokens[2], tokens[4], tokens[5]);
 				}
 				else{
 					raise_unexpected("created object's type","[table, index]",tokens[1]);
@@ -108,7 +117,28 @@ void Interpreter::execute(string sql){
 				}
 			}
 			else if (tokens[0]=="select"){
-
+				if (tokens[1]!="*") throw "* expected";
+				if (tokens[2]!="from") throw "from expected";
+				if (tokens.size()==3) throw "table name expected";
+				if (tokens[4]!="where") throw "where expected";
+				int i = 5;
+				vector<Clause> clauses;
+				while (1){
+					if (tokens.size()<i+3) throw "clause is not complete";
+					if (tokens[i+1]!=">=" && tokens[i+1]!=">" && tokens[i+1]!="<=" && tokens[i+1]!="<" && tokens[i+1]!="=" && tokens[i+1]!="<>") throw "input operator is not supported";
+					clauses.push_back(Clause(tokens[i],
+									  Clause::type_converter(tokens[i+1]),
+									  tokens[i+2]));
+					i+=3;
+					if (i==tokens.size()){
+						for (auto x:clauses){
+							x.ptr();
+						}
+						break;
+					}
+					if (tokens[i]!="and") throw "only support and conjunction. and expected";
+					i++;
+				}
 			}
 			else if (tokens[0]=="insert"){
 
