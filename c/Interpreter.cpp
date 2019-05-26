@@ -18,6 +18,7 @@ void Interpreter::refresh(){
 	has_valid_input = 0;
 	has_primary = 0;
 	tokens.clear();
+	tokens_is_string.clear();
 	attributes.clear();
 }
 
@@ -28,7 +29,13 @@ void Interpreter::split(string sql){
 			is_end = 1;
 			return;
 		}
-		if (sql[i]=='=' || sql[i]=='>' || sql[i]=='<'){
+		if (sql[i]=='\'' || sql[i]=='\"'){
+			int start_loc = ++i;
+			while (sql[i]!='\'' && sql[i]!='\"') i++;
+			tokens.push_back(sql.substr(start_loc,i-start_loc));
+
+		}
+		else if (sql[i]=='=' || sql[i]=='>' || sql[i]=='<'){
 			int start_loc = i;
 			while (sql[i]=='=' || sql[i]=='>' || sql[i]=='<') i++;
 			i--;
@@ -141,7 +148,7 @@ void Interpreter::execute(string sql){
 				}
 			}
 			else if (tokens[0]=="insert"){
-
+				// if (tokens.size())
 			}
 			else if (tokens[0]=="delete"){
 

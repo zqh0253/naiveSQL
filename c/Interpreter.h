@@ -19,6 +19,7 @@ class Interpreter{
 		void refresh();
 	private:
 		vector<string> tokens;
+		vector<int> tokens_is_string;
 		vector<Form> attributes;
 		int ptr;
 		void split(string sql);
