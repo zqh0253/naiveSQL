@@ -2,17 +2,25 @@ import cmd
 import time
 import os
 import sys
+import re
 
 import APIManager.api
 
 class miniSQL(cmd.Cmd):
 	intro = 'Welcome to the MiniSQL database server.\nType help or ? to list commands.\n'
 	
+	def finalize(self):
+		print('oh,')
+
 	def emptyline(self):
 		pass
 
 	def default(self, line):
-		args, symbol = line, line.split()[0] 
+		args, symbol = line, line.split()[0]
+		if (symbol[:4]=="quit"):
+			self.finalize()
+			print('goodbye')
+			sys.exit() 
 		if (symbol not in ['select','create','drop','insert','delete','quit','execfile']):
 			print('Unrecognized command.')
 			return
@@ -20,7 +28,10 @@ class miniSQL(cmd.Cmd):
 			print('.......>',end='')
 			args += (' '+input())
 		try:
-			eval('APIManager.api.'+symbol)(args.replace(';',''))
+			args = args.replace('<',' < ').replace('>',' > ').replace('=',' = ').replace('>=',' >= ').replace('<=',' <= ').replace('<>',' <> ')
+			args = re.sub(r' +', ' ', args.replace(';','')).strip().replace('\u200b','')
+			words = [word for word in re.split(' |\(|\)|,',args) if word!='']
+			eval('APIManager.api.'+symbol)(words)
 		except Exception as e:
 			print(str(e))
 
