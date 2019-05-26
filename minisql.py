@@ -4,7 +4,7 @@ import os
 import sys
 import re
 
-import APIManager.api
+import ApiManager.api
 
 class miniSQL(cmd.Cmd):
 	intro = 'Welcome to the MiniSQL database server.\nType help or ? to list commands.\n'
@@ -31,7 +31,7 @@ class miniSQL(cmd.Cmd):
 			args = args.replace('<',' < ').replace('>',' > ').replace('=',' = ').replace('>=',' >= ').replace('<=',' <= ').replace('<>',' <> ')
 			args = re.sub(r' +', ' ', args.replace(';','')).strip().replace('\u200b','')
 			words = [word for word in re.split(' |\(|\)|,',args) if word!='']
-			eval('APIManager.api.'+symbol)(words)
+			eval('ApiManager.api.'+symbol)(words)
 		except Exception as e:
 			print(str(e))
 

@@ -1,5 +1,7 @@
 import sys
 import minisql
+import CatalogManager.catalog
+import IndexManager.index
 
 def create(words):
 	if words[1] == 'table':
@@ -32,7 +34,10 @@ def create(words):
 					cnt += (3+unique)
 			if cnt  == length:
 				print(attributes,primary,tablename)
-				# ...
+				CatalogManager.catalog.exist_table(tablename)
+				CatalogManager.catalog.create_table(tablename,attributes,primary)
+				IndexManager.index.create_table(tablename)
+
 				break
 	elif words[1] == 'index':
 		if len(words)!=6 or words[3]!='on':
