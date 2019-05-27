@@ -35,10 +35,7 @@ class miniSQL(cmd.Cmd):
 		except Exception as e:
 			print(str(e))
 
-
 if __name__ == '__main__':
-	
-	# miniSQL.prompt = '(%s)' % sys.argv[2] + 'MiniSQL > '
 	miniSQL.prompt = 'MiniSQL>' 
 	miniSQL().cmdloop()
 

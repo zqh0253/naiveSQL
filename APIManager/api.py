@@ -2,6 +2,7 @@ import sys
 import minisql
 import CatalogManager.catalog
 import IndexManager.index
+import RecordManager.record
 
 def create(words):
 	if words[1] == 'table':
@@ -23,36 +24,41 @@ def create(words):
 				if words[cnt+1] in ['int','float']:
 					if (cnt + 2 < length) and (words[cnt+2]=='unique'):
 						unique = 1
-					attributes.append([words[cnt], words[cnt+1], 0, unique])
+					attributes.append([words[cnt], words[cnt+1], 0,[], unique])
 					cnt += (2+unique)
 				else:
 					if cnt + 2 == length:
 						raise Exception("maximum length of char expected.")
 					if cnt + 3 < length and words[cnt+3]=='unique':
 						unique = 1
-					attributes.append([words[cnt], words[cnt+1], int(words[cnt+2]), unique])
+					attributes.append([words[cnt], words[cnt+1], int(words[cnt+2]), [], unique])
 					cnt += (3+unique)
 			if cnt  == length:
 				print(attributes,primary,tablename)
-				CatalogManager.catalog.exist_table(tablename)
+				CatalogManager.catalog.exist_table(tablename, True)
 				CatalogManager.catalog.create_table(tablename,attributes,primary)
-				IndexManager.index.create_table(tablename)
-
+				IndexManager.index.create_table(tablename,primary)
+				RecordManager.record.create_table(tablename)
 				break
 	elif words[1] == 'index':
 		if len(words)!=6 or words[3]!='on':
 			raise Exception("Syntax error. Type \'help create\' for instructions.")
 		print(words[2],words[4],words[5])
 	else:
-		raise Exception('[table/index] expected, but '+words[2]+' found.')
+		raise Exception('[table/index] expected, but '+words[1]+' found.')
 
 def drop(words):
 	if words[1]=='table':
 		print(words[2])
+		CatalogManager.catalog.exist_table(words[2], False)
+		IndexManager.index.delete_table(words[2])
+		CatalogManager.catalog.delete_table(words[2])
+		RecordManager.record.delete_table(words[2])
 	elif words[1]=='index':
-		print(words[2])
+		tablename=IndexManager.index.delete_index(words[2])
+		CatalogManager.catalog.delete_index(tablename,words[2])
 	else:
-		raise Exception('[table/index] expected, but '+words[2]+' found.')
+		raise Exception('[table/index] expected, but '+words[1]+' found.')
 
 def insert(words):
 	if len(words)<5:
