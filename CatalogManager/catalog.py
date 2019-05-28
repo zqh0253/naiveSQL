@@ -3,6 +3,12 @@ import os
 
 path = 'D:/work/cs/db/minisql/naiveSQL/dbfile/catalog/'
 
+def init():
+	print('catalog init')
+
+def finalize():
+	print('catalog finalize')
+
 def exist_table(tablename, boolean):
 	fp = open(path+'table.sqlf')
 	tablelist = json.loads(fp.read())
@@ -57,5 +63,17 @@ def check_type(tablename,input_list):
 	fp = open(path+'table.sqlf','a+')
 	fp.seek(0)
 	tablelist = json.loads(fp.read())
-	if 
-	for x in input_list:
+	values = []
+	for inp,(name,attribute) in zip(input_list,tablelist[tablename]['columns'].items()):
+		if attribute[0]=='int':
+			value = int(inp)
+			values.append(value)
+		elif attribute[0]=='float':
+			value = float(inp)
+			values.append(value)
+		else:
+			if len(inp)>attribute[1]:
+				raise Exception(name + 'has maximum length '+ str(attribute[1]+'.'))
+			values.append(inp)
+	return values
+

@@ -16,7 +16,7 @@ class Node():
 		if self.is_leaf == False:
 			for x in self.sons:
 				x.ptr()
-
+	
 def load_tree_from_json(j,parent=None):
 	if j['is_leaf']==True:
 		node = Node(j['is_leaf'],j['keys'],j['sons']) 

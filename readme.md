@@ -1,0 +1,3 @@
+- [ ] update index when doing insert operation
+- [ ] complete init finalize on each class
+- [ ] insert b+ tree in index.py

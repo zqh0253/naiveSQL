@@ -4,6 +4,16 @@ import CatalogManager.catalog
 import IndexManager.index
 import RecordManager.record
 
+def init():
+	RecordManager.record.init()
+	IndexManager.index.init()
+	CatalogManager.catalog.init()
+
+def finalize():
+	RecordManager.record.finalize()
+	IndexManager.index.finalize()
+	CatalogManager.catalog.finalize()
+
 def create(words):
 	if words[1] == 'table':
 		tablename,attributes,cnt,length,primary = words[2],[],3,len(words),None
@@ -67,7 +77,10 @@ def insert(words):
 		raise Exception('into expected, but '+words[1]+' found.')
 	if words[3]!='values':
 		raise Exception('values expected, but '+words[3]+' found.')
+	CatalogManager.catalog.exist_table(words[2],False)
 	CatalogManager.catalog.check_type(words[2],words[4:])
+	where = RecordManager.record.insert(words[2],words[4:])
+	IndexManager.index.insert(words[2],key,where)
 
 def select(words):
 	if len(words)<6:
@@ -82,7 +95,6 @@ def select(words):
 		if words[4]!='where':
 			raise Exception('where expected, but '+words[4]+' found')
 
-	#select * from student where sage > 20 and sgender = ‘F’;
 		cnt,clauses = 5,[]
 		while (1):
 			if cnt+3>len(words):
@@ -98,7 +110,6 @@ def select(words):
 			cnt += 4
 
 def delete(words):
-	#delete from student where sno = ‘88888888’;
 	if len(words)<3:
 		raise Exception('Syntax error. Type \'help delete\' for instructions.')
 	if words[1]!='from':
