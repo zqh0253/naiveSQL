@@ -40,8 +40,9 @@ def find_leaf_place(node,value):
 		flag = False
 		for index, key in enumerate(tnode.keys):
 			if key>value:
-				tnode = tnode.sons[key]
+				tnode = tnode.sons[index]
 				flag = True
+				break
 		if flag == False:
 			tnode = tnode.sons[-1]
 	return tnode
@@ -54,29 +55,31 @@ def insert_into_leaf(node,_key,data):
 			node.sons.insert(index,data)
 			node.keys.insert(index,_key)
 			return 
-		node.sons.insert(len(node.sons),data)
-		node.keys.insert(len(node.sons),_key)
-		break	
+	node.sons.insert(len(node.sons),data)
+	node.keys.insert(len(node.sons),_key)
 
 def insert_into_parent(node1,node2):
-	# print(node2.keys[0])
 	if node1.parent==None:
 		global treeroot
 		parent_node = Node(False,[],[],None)
 		treeroot = parent_node
+		parent_node.sons.append(node1)
 	else:
 		parent_node = node1.parent
 	node2.parent = parent_node
 	# print(node2.keys[0])
-	parent_node.keys.append(node2.keys[0])
+	if node1.is_leaf==False:
+		parent_node.keys.append(node2.keys.pop(0))
+	else:
+		parent_node.keys.append(node2.keys[0])
 	parent_node.sons.append(node2)
-	if len(parent_node.keys)==N-1:
+	if len(parent_node.keys)==N:
 		new_node=Node(False,[],[])
-		up_key = parent_node.keys.pop(math.ceil((N+1)/2))
-		for i in range(N-math.ceil((N)/2)):
-			new_node.keys.append(parent_node.keys.pop(math.ceil((N)/2)))
-			new_node.sons.append(parent_node.sons.pop(math.ceil((N)/2))+1)
-		new_node.sons.append(parent_node.sons.pop(math.ceil((N)/2))+1)
+		for i in range(N-math.ceil((N-1)/2)):
+			new_node.keys.append(parent_node.keys.pop(math.ceil((N-1)/2)))
+			new_node.sons.append(parent_node.sons.pop(math.ceil((N-1)/2)+1))
+		for x in new_node.sons:
+			x.parent = new_node
 		insert_into_parent(parent_node,new_node)
 
 def insert(node,key,data):
@@ -91,12 +94,18 @@ def insert(node,key,data):
 		insert_into_leaf(insert_node,key,data)
 		new_node=Node(True,[],[])
 		# print('---')
-		for i in range(N-math.ceil(N/2)):
+		for i in range(N-math.ceil((N-1)/2)):
 			# print((insert_node.keys))
-			new_node.keys.append(insert_node.keys.pop(math.ceil(N/2)))
-			new_node.sons.append(insert_node.sons.pop(math.ceil(N/2)))
+			new_node.keys.append(insert_node.keys.pop(math.ceil((N-1)/2)))
+			new_node.sons.append(insert_node.sons.pop(math.ceil((N-1)/2)))
 		# print(insert_node.keys,new_node.keys)
+		# print(save_tree_into_json(insert_node),save_tree_into_json(new_node))
 		insert_into_parent(insert_node,new_node)
+		# insert_node.parent = p1
+		# new_node.parent = p2
+
+# def delete(node,key):
+
 
 treeroot = load_tree_from_json(root)
 while(1):
@@ -104,5 +113,5 @@ while(1):
 	if a == -1:
 		break
 	else:
-		insert(treeroot,a,'x')
+		insert(treeroot,a,-a)
 		print(save_tree_into_json(treeroot))
