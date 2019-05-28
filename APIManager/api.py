@@ -67,7 +67,7 @@ def insert(words):
 		raise Exception('into expected, but '+words[1]+' found.')
 	if words[3]!='values':
 		raise Exception('values expected, but '+words[3]+' found.')
-	print(words[2],words[4:])
+	CatalogManager.catalog.check_type(words[2],words[4:])
 
 def select(words):
 	if len(words)<6:

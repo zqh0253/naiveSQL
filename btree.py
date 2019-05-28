@@ -2,7 +2,7 @@ import math
 import json
 
 root = {'is_leaf':True,'sons':[],'keys':[]}
-N = 3
+N = 4
 
 class Node():
 	def __init__(self, is_leaf, keys, sons, parent = None):
@@ -14,7 +14,6 @@ class Node():
 	def ptr(self):
 		print(self.keys)
 		if self.is_leaf == False:
-			# print(self.keys)
 			for x in self.sons:
 				x.ptr()
 
@@ -64,6 +63,7 @@ def insert_into_parent(node1,node2):
 		parent_node = Node(False,[],[],None)
 		treeroot = parent_node
 		parent_node.sons.append(node1)
+		node1.parent =parent_node
 	else:
 		parent_node = node1.parent
 	node2.parent = parent_node
@@ -93,25 +93,97 @@ def insert(node,key,data):
 	else:
 		insert_into_leaf(insert_node,key,data)
 		new_node=Node(True,[],[])
-		# print('---')
 		for i in range(N-math.ceil((N-1)/2)):
-			# print((insert_node.keys))
 			new_node.keys.append(insert_node.keys.pop(math.ceil((N-1)/2)))
 			new_node.sons.append(insert_node.sons.pop(math.ceil((N-1)/2)))
-		# print(insert_node.keys,new_node.keys)
-		# print(save_tree_into_json(insert_node),save_tree_into_json(new_node))
 		insert_into_parent(insert_node,new_node)
-		# insert_node.parent = p1
-		# new_node.parent = p2
 
-# def delete(node,key):
+def get_id(f_node, node):
+	for index,n in enumerate(f_node.sons):
+		if n == node:
+			return index
+	raise Exception('fuck your get_id')
 
+def delete_node(node, index):
+	least = math.ceil((N-1)/2)
+	node.keys.pop(index)
+	node.sons.pop(index+1)
+	if len(node.keys) >= least:
+		return
+	if node.parent==None:
+		if len(node.keys)==0 and len(node.sons[0].keys)!=0:
+			global treeroot
+			treeroot = node.sons[0]
+			node.sons[0].parent = None		
+		return 
+	if node.parent.sons[0]==node:
+		id = get_id(node.parent, node)
+		if len(node.parent.sons[1].keys) >least:
+			node.keys.append(node.parent.keys[id])
+			node.parent.keys[id] = node.parent.sons[1].keys.pop(0)
+		else:
+			node.keys.append(node.parent.keys[id])
+			for i in range(len(node.parent.sons[1].keys)):
+				node.keys.append((node.parent.sons[1].keys[i]))
+				node.sons.append((node.parent.sons[1].sons[i]))
+			delete_node(node.parent,id)
+	else:
+		id = get_id(node.parent, node) - 1
+		if len(node.parent.sons[id].keys)>least:
+			node.keys.insert(0,node.parent.keys[id])
+			node.parent.keys[id] = node.parent.sons[id].keys.pop(-1)
+		else:
+			node.parent.sons[id].keys.append(node.parent.keys[id])
+			for i in range(len(node.keys)):
+				node.parent.sons[id].keys.append(node.keys[i])
+				node.parent.sons[id].sons.append(node.sons[i])
+			delete_node(node.parent,id)
+
+def delete(node,key):
+	cur_node = find_leaf_place(node,key)
+	flag = True
+	least = math.ceil((N-1)/2)
+	for index,_key in enumerate(cur_node.keys):
+		if key == _key:
+			flag = False
+			cur_node.sons.pop(index)
+			cur_node.keys.pop(index)
+			break
+	if flag:
+		raise Exception('No point to delete')
+	if cur_node.parent!=None and len(cur_node.keys)<least:
+		# print(cur_node.parent.sons[0],cur_node)
+		if cur_node.parent.sons[0]==cur_node:
+			if len(cur_node.parent.sons[1].keys)>least:
+				cur_node.sons.append(cur_node.parent.sons[1].sons.pop(0))
+				cur_node.keys.append(cur_node.parent.sons[1].keys.pop(0))
+				cur_node.parent.keys[0] = cur_node.parent.sons[1].keys[0]
+			else:
+				for i in range(len(cur_node.parent.sons[1].keys)):
+					cur_node.sons.append(cur_node.parent.sons[1].sons[i])
+					cur_node.keys.append(cur_node.parent.sons[1].keys[i])
+				delete_node(cur_node.parent,0)
+		else:
+			id = get_id (cur_node.parent,cur_node) - 1
+			if len(cur_node.parent.sons[id].keys)>least:
+				cur_node.sons.insert(0,cur_node.parent.sons[id].sons.pop(-1))
+				cur_node.keys.insert(0,cur_node.parent.sons[id].keys.pop(-1))
+				cur_node.parent.keys[id] = cur_node.keys[0]
+			else:
+				for i in range(len(cur_node.keys)):
+					cur_node.parent.sons[id].sons.append(cur_node.sons[i])
+					cur_node.parent.sons[id].keys.append(cur_node.keys[i])
+				delete_node(cur_node.parent,0)
 
 treeroot = load_tree_from_json(root)
 while(1):
+	b= int(input())
 	a = int(input())
 	if a == -1:
 		break
 	else:
-		insert(treeroot,a,-a)
+		if b==1:
+			insert(treeroot,a,-a)
+		else:
+			delete(treeroot,a)
 		print(save_tree_into_json(treeroot))

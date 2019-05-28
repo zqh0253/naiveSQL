@@ -2,6 +2,7 @@ import json
 import os
 
 path = 'D:/work/cs/db/minisql/naiveSQL/dbfile/catalog/'
+
 def exist_table(tablename, boolean):
 	fp = open(path+'table.sqlf')
 	tablelist = json.loads(fp.read())
@@ -51,3 +52,10 @@ def delete_index(tablename,indexname):
 		if (indexname,cnt) in zip(tablelist[tablename]['columns'][attr][-2],range(len(tablelist[tablename]['columns'][attr][-2]))):
 			tablelist[tablename]['columns'][attr][-2].pop(cnt)
 			break
+
+def check_type(tablename,input_list):
+	fp = open(path+'table.sqlf','a+')
+	fp.seek(0)
+	tablelist = json.loads(fp.read())
+	if 
+	for x in input_list:

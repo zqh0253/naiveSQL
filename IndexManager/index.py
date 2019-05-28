@@ -19,10 +19,3 @@ def delete_index(indexname):
 			os.remove(path+file)
 			return file.split('_')[0]
 	# raise Exception('No index named '+indexname+'.')
-
-tree = {}
-
-def find_leaf(key):
-	
-
-def insert_into_tree(key, value):
