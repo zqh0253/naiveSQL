@@ -10,7 +10,7 @@ class miniSQL(cmd.Cmd):
 	intro = 'Welcome to the MiniSQL database server.\nType help or ? to list commands.\n'
 	
 	def finalize(self):
-		print('oh,')
+		ApiManager.api.finalize()
 
 	def emptyline(self):
 		pass
@@ -35,7 +35,11 @@ class miniSQL(cmd.Cmd):
 		except Exception as e:
 			print(str(e))
 
+	def init(self):
+		ApiManager.api.init()
+
 if __name__ == '__main__':
+	miniSQL().init()
 	miniSQL.prompt = 'MiniSQL>' 
 	miniSQL().cmdloop()
 

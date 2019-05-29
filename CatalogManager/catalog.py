@@ -48,7 +48,14 @@ def get_index_list(tablename):
 	fp.seek(0)
 	tablelist = json.loads(fp.read())
 	l=[]
-	return [y for y in [x[-2] for x in tablelist[tablename]['columns'].items()]]
+	[[l.append(y) for y in x[-2]] for x in tablelist[tablename]['columns'].values()]
+	return l
+
+def get_index_name(tablename,index):
+	fp = open(path+'table.sqlf','a+')
+	fp.seek(0)
+	tablelist = json.loads(fp.read())
+	return tablelist[tablename]['columns'][list(tablelist[tablename]['columns'].keys())[index]][-2]
 
 def delete_index(tablename,indexname):
 	fp = open(path+'table.sqlf','a+')

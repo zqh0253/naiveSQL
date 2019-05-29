@@ -19,8 +19,9 @@ def delete_table(tablename):
 def insert(tablename,values):
 	encode = '1'
 	for value in values:
-		if type(value)==str:
-			encode+= '{:\0<50}'.format(str(value[1:-1]))
+		if type(eval(value))==str:
+			encode+= '{:_<50}'.format(str(value[1:-1]))
 		else:
-			encode+= '{:\0<50}'.format(str(value))
+			encode+= '{:_<50}'.format(str(value))
+	print(encode)
 	return BufferManager.buffer.save_block(tablename, encode)

@@ -47,7 +47,7 @@ def create(words):
 				print(attributes,primary,tablename)
 				CatalogManager.catalog.exist_table(tablename, True)
 				CatalogManager.catalog.create_table(tablename,attributes,primary)
-				IndexManager.index.create_table(tablename,primary)
+				IndexManager.index.create_table(tablename,' ')
 				RecordManager.record.create_table(tablename)
 				break
 	elif words[1] == 'index':
@@ -80,7 +80,11 @@ def insert(words):
 	CatalogManager.catalog.exist_table(words[2],False)
 	CatalogManager.catalog.check_type(words[2],words[4:])
 	where = RecordManager.record.insert(words[2],words[4:])
-	IndexManager.index.insert(words[2],key,where)
+	print(words[4:])
+	for index,key in enumerate(words[4:]):
+		if CatalogManager.catalog.get_index_name(words[2], index) != []:
+			for indexname in CatalogManager.catalog.get_index_name(words[2], index):
+				IndexManager.index.insert_entry(words[2],indexname,eval(key),where)
 
 def select(words):
 	if len(words)<6:
