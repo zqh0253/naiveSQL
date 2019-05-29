@@ -49,7 +49,7 @@ def find_leaf_place(node,value):
 			tnode = tnode.sons[-1]
 	return tnode
 
-def insert_into_leaf(node,_key,data,is_insert = False):
+def insert_into_leaf(node,_key,data):
 	for index,key in enumerate(node.keys):
 		if key == _key:
 			raise Exception('Insertion fails. Data with key: '+str(key)+' already exists.')
@@ -94,16 +94,16 @@ def insert_into_parent(node1,node2):
 		new_node.left = parent_node
 		insert_into_parent(parent_node,new_node)
 
-def insert(node,key,data,is_insert = False):
+def insert(node,key,data):
 	if len(node.keys)==0:
 		node.keys.append(key)
 		node.sons.append(data)
 		return
 	insert_node = find_leaf_place(node,key)
 	if len(insert_node.keys)<N-1:
-		insert_into_leaf(insert_node,key,data,is_insert)
+		insert_into_leaf(insert_node,key,data)
 	else:
-		insert_into_leaf(insert_node,key,data,is_insert)
+		insert_into_leaf(insert_node,key,data)
 		new_node=Node(True,[],[])
 		for i in range(N-math.ceil((N-1)/2)):
 			new_node.keys.append(insert_node.keys.pop(math.ceil((N-1)/2)))

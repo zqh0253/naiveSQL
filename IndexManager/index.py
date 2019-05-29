@@ -10,11 +10,14 @@ root = None
 N = 4
 
 class Node():
-	def __init__(self, is_leaf, keys, sons, parent = None):
+	def __init__(self, is_leaf, keys, sons, parent = None, left = None, right = None):
 		self.is_leaf = is_leaf
 		self.keys = keys
 		self.sons = sons
 		self.parent = parent
+		self.left = left
+		self.right = right
+
 
 	def ptr(self):
 		print(self.keys)
@@ -26,14 +29,14 @@ def load_tree_from_json(j,parent=None):
 	if j['is_leaf']==True:
 		node = Node(j['is_leaf'],j['keys'],j['sons']) 
 	else:
-		node = Node(j['is_leaf'],j['keys'],[load_tree_from_json(x) for x in j['sons']])
+		node = Node(j['is_leaf'],j['keys'],[create_tree_from_json(x) for x in j['sons']])
 		for son in node.sons:
 			son.parent = node
 	return node
 
 def save_tree_into_json(j):
 	m = {}
-	m["is_leaf"] = j.is_leaf
+	m['is_leaf'] = j.is_leaf
 	m['keys'] = j.keys
 	m['sons'] = [(save_tree_into_json(x)) for x in j.sons] if m['is_leaf']==False else j.sons
 	return m
@@ -51,33 +54,45 @@ def find_leaf_place(node,value):
 			tnode = tnode.sons[-1]
 	return tnode
 
-def insert_into_leaf(node,_key,data):
+def insert_into_leaf(node,_key,data,is_insert = False):
 	for index,key in enumerate(node.keys):
 		if key == _key:
-			raise Exception('Insertion fails. Data with key: '+str(key)+' already exists.')
-		if key>_key:
+			if is_insert:
+				return node.sons[index]
+			else:
+				return 'conflict'
+		if not is_insert and key>_key:
 			node.sons.insert(index,data)
 			node.keys.insert(index,_key)
-			return 
-	node.sons.insert(len(node.sons),data)
-	node.keys.insert(len(node.sons),_key)
+			return None
+	if not is_insert: 
+		node.sons.insert(len(node.sons),data)
+		node.keys.insert(len(node.sons),_key)
+		return None
 
 def insert_into_parent(node1,node2):
 	if node1.parent==None:
+		# global treeroot
+		# parent_node = Node(False,[],[],None)
+		# treeroot = parent_node
+		# parent_node.sons.append(node1)
+		# node1.parent =parent_node
+
 		global root
 		parent_node = Node(False,[],[],None)
 		root = parent_node
 		parent_node.sons.append(node1)
 		node1.parent =parent_node
+
 	else:
 		parent_node = node1.parent
+	id = get_id(parent_node, node1)
 	node2.parent = parent_node
-	# print(node2.keys[0])
 	if node1.is_leaf==False:
-		parent_node.keys.append(node2.keys.pop(0))
+		parent_node.keys.insert(id,node2.keys.pop(0))
 	else:
-		parent_node.keys.append(node2.keys[0])
-	parent_node.sons.append(node2)
+		parent_node.keys.insert(id,node2.keys[0])
+	parent_node.sons.insert(id+1,node2)
 	if len(parent_node.keys)==N:
 		new_node=Node(False,[],[])
 		for i in range(N-math.ceil((N-1)/2)):
@@ -85,23 +100,36 @@ def insert_into_parent(node1,node2):
 			new_node.sons.append(parent_node.sons.pop(math.ceil((N-1)/2)+1))
 		for x in new_node.sons:
 			x.parent = new_node
+		parent_node.right = new_node
+		new_node.left = parent_node
 		insert_into_parent(parent_node,new_node)
 
-def insert(node,key,data):
+def insert(node,key,data,is_insert = False):
 	if len(node.keys)==0:
 		node.keys.append(key)
 		node.sons.append(data)
-		return
+		return []
 	insert_node = find_leaf_place(node,key)
 	if len(insert_node.keys)<N-1:
-		insert_into_leaf(insert_node,key,data)
+		res = insert_into_leaf(insert_node,key,data,is_insert)
+		if res == 'conflict':
+			return res
+		if res != None:
+			return res
 	else:
-		insert_into_leaf(insert_node,key,data)
+		res = insert_into_leaf(insert_node,key,data,is_insert)
+		if res == 'conflict':
+			return res
+		if res != None:
+			return res
 		new_node=Node(True,[],[])
 		for i in range(N-math.ceil((N-1)/2)):
 			new_node.keys.append(insert_node.keys.pop(math.ceil((N-1)/2)))
 			new_node.sons.append(insert_node.sons.pop(math.ceil((N-1)/2)))
+		insert_node.right = new_node
+		new_node.left = insert_node
 		insert_into_parent(insert_node,new_node)
+	return []
 
 def get_id(f_node, node):
 	for index,n in enumerate(f_node.sons):
@@ -126,22 +154,29 @@ def delete_node(node, index):
 		if len(node.parent.sons[1].keys) >least:
 			node.keys.append(node.parent.keys[id])
 			node.parent.keys[id] = node.parent.sons[1].keys.pop(0)
+			node.sons.append(node.parent.sons[1].sons.pop(0))
+			node.sons[-1].parent = node
 		else:
 			node.keys.append(node.parent.keys[id])
 			for i in range(len(node.parent.sons[1].keys)):
 				node.keys.append((node.parent.sons[1].keys[i]))
 				node.sons.append((node.parent.sons[1].sons[i]))
+				node.sons[-1].parent = node
+			node.right = node.right.right
 			delete_node(node.parent,id)
 	else:
 		id = get_id(node.parent, node) - 1
 		if len(node.parent.sons[id].keys)>least:
 			node.keys.insert(0,node.parent.keys[id])
 			node.parent.keys[id] = node.parent.sons[id].keys.pop(-1)
+			node.sons.insert(0,node.parent.sons[id].pop(-1))
+			node.sons[0].parent = node
 		else:
 			node.parent.sons[id].keys.append(node.parent.keys[id])
 			for i in range(len(node.keys)):
 				node.parent.sons[id].keys.append(node.keys[i])
 				node.parent.sons[id].sons.append(node.sons[i])
+			node.left.right = node.right
 			delete_node(node.parent,id)
 
 def delete(node,key):
@@ -159,6 +194,7 @@ def delete(node,key):
 	if cur_node.parent!=None and len(cur_node.keys)<least:
 		# print(cur_node.parent.sons[0],cur_node)
 		if cur_node.parent.sons[0]==cur_node:
+			print('A')
 			if len(cur_node.parent.sons[1].keys)>least:
 				cur_node.sons.append(cur_node.parent.sons[1].sons.pop(0))
 				cur_node.keys.append(cur_node.parent.sons[1].keys.pop(0))
@@ -167,18 +203,53 @@ def delete(node,key):
 				for i in range(len(cur_node.parent.sons[1].keys)):
 					cur_node.sons.append(cur_node.parent.sons[1].sons[i])
 					cur_node.keys.append(cur_node.parent.sons[1].keys[i])
+				cur_node.right = cur_node.right.right
 				delete_node(cur_node.parent,0)
 		else:
+			print('B')
 			id = get_id (cur_node.parent,cur_node) - 1
 			if len(cur_node.parent.sons[id].keys)>least:
 				cur_node.sons.insert(0,cur_node.parent.sons[id].sons.pop(-1))
 				cur_node.keys.insert(0,cur_node.parent.sons[id].keys.pop(-1))
 				cur_node.parent.keys[id] = cur_node.keys[0]
 			else:
+				print('here',id)
 				for i in range(len(cur_node.keys)):
 					cur_node.parent.sons[id].sons.append(cur_node.sons[i])
 					cur_node.parent.sons[id].keys.append(cur_node.keys[i])
-				delete_node(cur_node.parent,0)
+				cur_node.left.right = cur_node.right
+				delete_node(cur_node.parent,id)
+
+def get_leftest_child(node):
+	tnode = node
+	while not tnode.is_leaf:
+		tnode = tnode.sons[0] 
+	return tnode
+
+def get_data_list_right(node, bad = None):
+	l = []
+	for index,x in enumerate(node.sons):
+		if not node.keys[index]==bad:
+			l.append(x)
+	if node.right!=None:
+		l+=get_data_list_right(node.right)
+	return l
+
+def get_rightest_child(node):
+	tnode = node
+	while not tnode.is_leaf:
+		tnode = tnode.sons[-1] 
+	return tnode
+
+def get_data_list_left(node, bad = None):
+	l = []
+	for index,x in enumerate(node.sons):
+		if not node.keys[index]==bad:
+			l.append(x)
+	if node.right!=None:
+		l+=get_data_list_left(node.left)
+	return l
+
 
 def init():
 	file_list = os.listdir(path)
@@ -193,6 +264,7 @@ def finalize():
 		name = file.rstrip('.ind') 
 		fp[name].seek(0)
 		fp[name].truncate()
+		print(name)
 		fp[name].write(json.dumps(save_tree_into_json(treeroot[name])))
 		fp[name].close()
 
@@ -225,5 +297,28 @@ def insert_entry(tablename,indexname, key, data):
 	print(treeroot[tablename+'_'+indexname])
 	global root
 	root = treeroot[tablename+'_'+indexname]
-	insert(treeroot[tablename+'_'+indexname],key,data)
+	res = insert(treeroot[tablename+'_'+indexname],key,data)
+	if res == 'conflict':
+		return res
 	treeroot[tablename+'_'+indexname] = root
+	print(save_tree_into_json(treeroot[tablename+'_'+indexname]))
+
+def select(tablename, clause, indexname):
+	res,value = [],eval(clause[-1])
+	if clause[1]=='<>':
+		res = get_data_list_right(get_leftest_child(treeroot[tablename+'_'+indexname]), value)
+	elif clause[1]=='=':
+		res = insert(treeroot[tablename+'_'+indexname],eval(clause[-1]),None,True)
+	else:
+		break_block = find_leaf_place(treeroot[tablename+'_'+indexname],value)
+		for index, key in enumerate(break_block.keys):
+			if eval(str(key) + clause[1] + clause[2]):
+				res.append(break_block.sons[index])
+		if '>' in clause[1] and break_block.right != None:
+			res += get_data_list_right(break_block.right)
+		elif break_block.left != None:
+			res += get_data_list_left(break_block.left)
+
+	# print('search in ', tablename, 'clause is', clause)
+	print(res)
+	return res

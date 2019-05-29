@@ -82,11 +82,14 @@ def insert(words):
 	where = RecordManager.record.insert(words[2],words[4:])
 	print(words[4:])
 	for index,key in enumerate(words[4:]):
-		if CatalogManager.catalog.get_index_name(words[2], index) != []:
-			for indexname in CatalogManager.catalog.get_index_name(words[2], index):
-				IndexManager.index.insert_entry(words[2],indexname,eval(key),where)
-
+		if CatalogManager.catalog.get_index_name_by_seq(words[2], index) != []:
+			for indexname in CatalogManager.catalog.get_index_name_by_seq(words[2], index):
+				if IndexManager.index.insert_entry(words[2],indexname,eval(key),where) == 'conflict':
+					print('conflict')
+					RecordManager.record.truncate(words[2],where-CatalogManager.catalog.get_encode_size(words[2]))
+					raise Exception('Insertion fails. Data with key: '+str(key)+' already exists.')
 def select(words):
+	print(words)
 	if len(words)<6:
 		raise Exception('Syntax error. Type \'help select\' for instructions.')
 	if words[1]!='*':
@@ -99,7 +102,7 @@ def select(words):
 		if words[4]!='where':
 			raise Exception('where expected, but '+words[4]+' found')
 
-		cnt,clauses = 5,[]
+		tablename,cnt,clauses =words[3],5,[]
 		while (1):
 			if cnt+3>len(words):
 				raise Exception('Clause is not complete.')
@@ -107,7 +110,18 @@ def select(words):
 				raise Exception('Input operator '+words[cnt+1]+' is not supported.')
 			clauses.append([words[cnt],words[cnt+1],words[cnt+2]])
 			if cnt+3==len(words):
-				print(clauses)
+				indexname = CatalogManager.catalog.get_column_with_index(tablename)
+				print('---',indexname)
+				index_clause = None
+				for clause in clauses:
+					if clause[0] in indexname:
+						index_clause = clause
+						break
+				if index_clause == None:
+					print('have no index')
+				else:
+					indexname = CatalogManager.catalog.get_index_name(tablename, index_clause[0])
+					res = IndexManager.index.select(tablename,index_clause,indexname[0])
 				break
 			if words[cnt+3] !='and':
 				raise Exception('and expected but '+words[cnt+3]+' found.')

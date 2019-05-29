@@ -28,8 +28,14 @@ class miniSQL(cmd.Cmd):
 			print('.......>',end='')
 			args += (' '+input())
 		try:
-			args = args.replace('<',' < ').replace('>',' > ').replace('=',' = ').replace('>=',' >= ').replace('<=',' <= ').replace('<>',' <> ')
+			args = args.replace('>=',' >= ').replace('<=',' <= ').replace('<>',' <> ')
+			args = re.sub('<(?![=>])',' < ',args)
+			args = re.sub('(?<!<)>(?!=)',' > ',args)
+			args = re.sub('(?<![<>])=',' = ',args)
+			# string(?=pattern) check from left to right
+			# (?<=pattern)string check from right to left
 			args = re.sub(r' +', ' ', args.replace(';','')).strip().replace('\u200b','')
+			print(args)
 			words = [word for word in re.split(' |\(|\)|,',args) if word!='']
 			eval('ApiManager.api.'+symbol)(words)
 		except Exception as e:
