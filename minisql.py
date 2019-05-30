@@ -3,8 +3,17 @@ import time
 import os
 import sys
 import re
-
+import datetime
 import ApiManager.api
+
+def clock(func):
+    def int_time(*args, **kwargs):
+        start_time = datetime.datetime.now()
+        func(*args, **kwargs)
+        over_time = datetime.datetime.now() 
+        total_time = (over_time-start_time).total_seconds()
+        print('Run successfully. Passed {} s'.format(total_time))
+    return int_time
 
 class miniSQL(cmd.Cmd):
 	intro = 'Welcome to the MiniSQL database server.\nType help or ? to list commands.\n'
@@ -15,6 +24,7 @@ class miniSQL(cmd.Cmd):
 	def emptyline(self):
 		pass
 
+	@clock
 	def default(self, line):
 		args, symbol = line, line.split()[0]
 		if (symbol[:4]=="quit"):
@@ -35,7 +45,6 @@ class miniSQL(cmd.Cmd):
 			# string(?=pattern) check from left to right
 			# (?<=pattern)string check from right to left
 			args = re.sub(r' +', ' ', args.replace(';','')).strip().replace('\u200b','')
-			print(args)
 			words = [word for word in re.split(' |\(|\)|,',args) if word!='']
 			eval('ApiManager.api.'+symbol)(words)
 		except Exception as e:
@@ -48,4 +57,3 @@ if __name__ == '__main__':
 	miniSQL().init()
 	miniSQL.prompt = 'MiniSQL>' 
 	miniSQL().cmdloop()
-

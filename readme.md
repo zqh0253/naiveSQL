@@ -4,9 +4,10 @@
 - [ ] create index
 - [x] select
 - [x] drop
-- [ ] delete
+- [x] 非index的select操作以及多个select操作的连接
+- [x] delete
 - [x] **b+ 删除时候parent维护**
-- [ ] output 美化
+- [x] output 美化
 - [ ] do execfile
 - [ ] help command
 

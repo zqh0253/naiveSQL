@@ -11,14 +11,12 @@ def init():
 	fp = open(path+'table.sqlf','a+')
 	fp.seek(0)
 	tablelist = json.loads(fp.read())
-	print('catalog init')
 
 def finalize():
 	fp.seek(0)
 	fp.truncate()
 	fp.write(json.dumps(tablelist))
 	fp.close()
-	print('catalog finalize')
 
 def exist_table(tablename, boolean):
 	if (tablename in tablelist) if boolean else (tablename not in tablelist):
@@ -37,6 +35,15 @@ def create_table(tablename, attributes,primary):
 def delete_table(tablename):
 	tablelist.pop(tablename)
 
+def get_the_index_of_attribute(tablename, attribute_name):
+	return list(tablelist[tablename]['columns'].keys()).index(attribute_name)
+
+def get_type_of_attribute(tablename,attribute_name):
+	return tablelist[tablename]['columns'][attribute_name][0]
+
+def get_type_list(tablename):
+	return [x[0] for x in  tablelist[tablename]['columns'].values()]
+
 def get_index_list(tablename):
 	l=[]
 	[[l.append(y) for y in x[-2]] for x in tablelist[tablename]['columns'].values()]
@@ -45,9 +52,12 @@ def get_index_list(tablename):
 def get_column_with_index(tablename):
 	res = []
 	for key,value in tablelist[tablename]['columns'].items():
-		if value[-1] != []:
+		if value[2] != []:
 			res.append(key)
 	return res
+
+def get_column_name(tablename):
+	return tablelist[tablename]['columns'].keys()
 
 def get_index_name(tablename,index):
 	return tablelist[tablename]['columns'][index][-2]
@@ -74,7 +84,12 @@ def check_type(tablename,input_list):
 			value = float(inp)
 			values.append(value)
 		else:
-			if len(inp)>attribute[1]:
+			if len(eval(inp))>attribute[1]:
 				raise Exception(name + 'has maximum length '+ str(attribute[1]+'.'))
 			values.append(inp)
 	return values
+
+def create_index(tablename, indexname, columnname):
+	if indexname in tablelist[tablename]['columns'][columnname][2]:
+		raise Exception('Index already exists: {}->{}({})'.format(tablename,columnname,indexname))
+	tablelist[tablename]['columns'][columnname][2].append(indexname)

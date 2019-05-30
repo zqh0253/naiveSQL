@@ -90,6 +90,9 @@ def insert_into_parent(node1,node2):
 			new_node.sons.append(parent_node.sons.pop(math.ceil((N-1)/2)+1))
 		for x in new_node.sons:
 			x.parent = new_node
+		new_node.right = parent_node.right
+		if parent_node.right !=None:
+				parent_node.right.left = new_node
 		parent_node.right = new_node
 		new_node.left = parent_node
 		insert_into_parent(parent_node,new_node)
@@ -108,6 +111,9 @@ def insert(node,key,data,is_insert = False):
 		for i in range(N-math.ceil((N-1)/2)):
 			new_node.keys.append(insert_node.keys.pop(math.ceil((N-1)/2)))
 			new_node.sons.append(insert_node.sons.pop(math.ceil((N-1)/2)))
+		new_node.right = insert_node.right
+		if insert_node.right != None:
+				insert_node.right.left = new_node
 		insert_node.right = new_node
 		new_node.left = insert_node
 		insert_into_parent(insert_node,new_node)
@@ -213,6 +219,32 @@ def print_list(node):
 	if node.right!=None:
 		print_list(node.right)
 
+prev = None
+def maintain_left_right_pointer(node):
+	global prev
+	if node!=None:
+		if node.is_leaf:
+			if prev!=None:
+				prev.right = node
+				node.left = prev
+			prev = node
+		else:
+			for x in node.sons:
+				maintain_left_right_pointer(x)
+	node.right = None
+
+def get_rightest_child(node):
+	tnode = node
+	while not tnode.is_leaf:
+		tnode = tnode.sons[-1]
+	return tnode
+	
+def print_l_list(node):
+	for x in reversed(node.keys):
+		print(x,end=' ')
+	if node.left != None:	
+		print_l_list(node.left)
+
 treeroot = load_tree_from_json(root)
 while(1):
 	b= int(input())
@@ -224,5 +256,9 @@ while(1):
 			insert(treeroot,a,-a)
 		else:
 			delete(treeroot,a)
+		# maintain_left_right_pointer(treeroot)
 		print(save_tree_into_json(treeroot))
 		print_list(get_leftest_child(treeroot))
+		print('----------------------')
+		print_l_list(get_rightest_child(treeroot))
+		print()
