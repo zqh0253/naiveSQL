@@ -93,7 +93,7 @@ def insert(words):
 					temp_list = CatalogManager.catalog.get_index_name_by_seq(words[2], index)
 					for del_indexname in temp_list[:temp_list.index(indexname)]:
 						IndexManager.index.delete_entries([e], tablename, del_indexname)
-					RecordManager.record.truncate(words[2],where-CatalogManager.catalog.get_encode_size(words[2]))
+					RecordManager.record.truncate(words[2],where)
 					raise Exception('Insertion fails. Data with key: '+str(key)+' already exists.')
 
 def select(words):

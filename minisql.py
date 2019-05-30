@@ -24,6 +24,33 @@ class miniSQL(cmd.Cmd):
 	def emptyline(self):
 		pass
 
+	def do_execfile(self, line):
+		with open(line.rstrip(';')) as f:
+			content = [line.rstrip('\n') for line in f]
+			for command in content:
+				self.default(command)
+
+	def help_insert(self):
+		print('''
+			SCHEME:
+			insert into $tablename$ values ($arg1$, $arg2$, ...);
+			SAMPLE:
+			insert into students values (3170104343, 'zqh');
+			''')
+
+	def help_create(self):
+		print('''
+			SCHEME_I:
+			create table $tablename$ (($name$ (int|float|(char([0-9]+)) (unique)?)+, primary key $name$);
+			SAMPLE_I:
+			create table student (sid int, token char(50) unique , height float, primary key sid);
+			
+			SCHEME_II:
+			create index $indexname$ on $tablename$ ($columnname$);
+			SAMPLE_II:
+			create index on token_index on student(token);
+			''')
+
 	@clock
 	def default(self, line):
 		args, symbol = line, line.split()[0]
