@@ -1,46 +1,62 @@
 import os
+import re
+import collections
 
-cache = []
+cache = collections.OrderedDict()
+cache_size = 1000
 path = 'D:/work/cs/db/minisql/naiveSQL/dbfile/record/'
 fp = {}
 
 def init():
-	global fp
-	file_list = os.listdir(path)
-	for file in file_list:
-		fp[file.rstrip('.rec')] = open(path+file,'rb+')
-
+	pass
 def finalize():
-	global fp
-	for f in fp.values():
-		f.close()
-# def load_block(n):
+	namelist=[]
+	for name, code in cache.items():
+		tablename, where = re.split('\0',name)
+		if tablename not in namelist:
+			namelist.append(tablename)
+			with open(path+tablename+'.rec','a+') as fp:
+				pass
+		with open(path+tablename+'.rec','rb+') as fp:
+			fp.seek(int(where))
+			fp.write(code)
 
 def save_block(tablename, code):
-	global fp
-	if tablename not in fp:
-		fp[tablename] = open(path+tablename+'.rec','rb+')
-	fp[tablename].write(code.encode(encoding='UTF-8',errors='strict'))	
-	return(fp[tablename].tell())
+	with open(path+tablename+'.rec','rb+') as fp:
+		fp.read()
+		if len(cache)==cache_size:
+			cache.popitem(last=False)
+		cache[tablename+'\0'+str(fp.tell())] = code.encode(encoding='UTF-8',errors='strict')
+		fp.write(cache[tablename+'\0'+str(fp.tell())])
+		return(fp.tell())
 
 def get_block(tablename, where, length):
-	fp[tablename].seek(where)
-	return fp[tablename].read(length)
+	if tablename+'\0'+str(where) in cache:
+		return cache[tablename+'\0'+str(where)]
+	with open(path+tablename+'.rec','rb+') as fp:
+		fp.seek(where)
+		if len(cache)==cache_size:
+			cache.popitem(last=False)
+		cache[tablename+'\0'+str(where)] = fp.read(length)
+	return cache[tablename+'\0'+str(where)]
 
 def create_table(tablename):
 	p = open(path+tablename+'.rec','a+')
 	p.close()
-	p = open(path+tablename+'.rec','rb+')
-	fp[tablename] = p
 
 def delete_table(tablename):
-	global fp
-	fp[tablename].close()
+	pass
 
 def truncate(tablename, where):
 	fp[tablename].seek(where)
 	fp[tablename].truncate()
 
 def change_valid_bit(tablename, loc):
-	fp[tablename].seek(loc)
-	fp[tablename].write('0'.encode(encoding='UTF-8',errors='strict'))
+	with open(path+tablename+'.rec','rb+') as fp:
+		if tablename+'\0'+str(loc) not in cache:
+			cache.popitem(last=False)
+		l = list(cache[tablename+'\0'+str(loc)].decode('utf-8'))
+		l[0] = '0'
+		cache[tablename+'\0'+str(loc)] = ''.join(l).encode(encoding='UTF-8',errors='strict')
+		fp.seek(loc)
+		fp.write('0'.encode(encoding='UTF-8',errors='strict'))

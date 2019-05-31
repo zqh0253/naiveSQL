@@ -77,7 +77,7 @@ class miniSQL(cmd.Cmd):
 			eval('ApiManager.api.'+symbol)(words)
 		except Exception as e:
 			print(str(e))
-			# traceback.print_exc()
+			traceback.print_exc()
 
 	def init(self):
 		ApiManager.api.init()
