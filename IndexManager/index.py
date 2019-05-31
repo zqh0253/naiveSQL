@@ -24,26 +24,12 @@ class Node():
 		if self.is_leaf == False:
 			for x in self.sons:
 				x.ptr()
-
-prev = None
-def maintain_left_right_pointer(node):
-	global prev
-	if node!=None:
-		if node.is_leaf:
-			if prev!=None:
-				prev.right = node
-				node.left = prev
-			prev = node
-		else:
-			for x in node.sons:
-				maintain_left_right_pointer(x)
-	node.right = None
-
+	
 def load_tree_from_json(j,parent=None):
 	if j['is_leaf']==True:
 		node = Node(j['is_leaf'],j['keys'],j['sons']) 
 	else:
-		node = Node(j['is_leaf'],j['keys'],[load_tree_from_json(x) for x in j['sons']])
+		node = Node(j['is_leaf'],j['keys'],[create_tree_from_json(x) for x in j['sons']])
 		for son in node.sons:
 			son.parent = node
 	return node
@@ -74,12 +60,13 @@ def insert_into_leaf(node,_key,data,is_insert = True):
 			if not is_insert:
 				return node.sons[index]
 			else:
+				print(key,'>>>>', _key)
 				raise Exception(_key)
 		if is_insert and key>_key:
 			node.sons.insert(index,data)
 			node.keys.insert(index,_key)
 			return None
-	if is_insert: 
+	if is_insert:
 		node.sons.insert(len(node.sons),data)
 		node.keys.insert(len(node.sons),_key)
 		return None
@@ -115,7 +102,7 @@ def insert_into_parent(node1,node2):
 		for x in new_node.sons:
 			x.parent = new_node
 		new_node.right = parent_node.right
-		if parent_node.right != None:
+		if parent_node.right !=None:
 			parent_node.right.left = new_node
 		parent_node.right = new_node
 		new_node.left = parent_node
@@ -139,14 +126,12 @@ def insert(node,key,data,is_insert = True):
 		for i in range(N-math.ceil((N-1)/2)):
 			new_node.keys.append(insert_node.keys.pop(math.ceil((N-1)/2)))
 			new_node.sons.append(insert_node.sons.pop(math.ceil((N-1)/2)))
-
 		new_node.right = insert_node.right
 		if insert_node.right != None:
 				insert_node.right.left = new_node
 		insert_node.right = new_node
 		new_node.left = insert_node
 		insert_into_parent(insert_node,new_node)
-
 	return []
 
 def get_id(f_node, node):
@@ -156,9 +141,10 @@ def get_id(f_node, node):
 	raise Exception('fuck your get_id')
 
 def delete_node(node, index):
-	least = math.ceil((N-1)/2)
+	least = math.ceil((N)/2) - 1
 	node.keys.pop(index)
 	node.sons.pop(index+1)
+
 	if len(node.keys) >= least:
 		return
 	if node.parent==None:
@@ -180,6 +166,10 @@ def delete_node(node, index):
 				node.keys.append((node.parent.sons[1].keys[i]))
 				node.sons.append((node.parent.sons[1].sons[i]))
 				node.sons[-1].parent = node
+			node.sons.append((node.parent.sons[1].sons[-1]))
+			node.sons[-1].parent = node
+			if node.right.right!=None:
+				node.right.right.left = node
 			node.right = node.right.right
 			delete_node(node.parent,id)
 	else:
@@ -187,13 +177,18 @@ def delete_node(node, index):
 		if len(node.parent.sons[id].keys)>least:
 			node.keys.insert(0,node.parent.keys[id])
 			node.parent.keys[id] = node.parent.sons[id].keys.pop(-1)
-			node.sons.insert(0,node.parent.sons[id].pop(-1))
+			node.sons.insert(0,node.parent.sons[id].sons.pop(-1))
 			node.sons[0].parent = node
 		else:
 			node.parent.sons[id].keys.append(node.parent.keys[id])
 			for i in range(len(node.keys)):
 				node.parent.sons[id].keys.append(node.keys[i])
 				node.parent.sons[id].sons.append(node.sons[i])
+				node.parent.sons[id].sons[-1].parent = node.parent.sons[id]
+			node.parent.sons[id].sons.append(node.sons[-1])
+			node.parent.sons[id].sons[-1].parent = node.parent.sons[id]
+			if node.right!=None:
+				node.right.left = node.left
 			node.left.right = node.right
 			delete_node(node.parent,id)
 
@@ -210,6 +205,7 @@ def delete(node,key):
 	if flag:
 		raise Exception('No point to delete')
 	if cur_node.parent!=None and len(cur_node.keys)<least:
+		# print(cur_node.parent.sons[0],cur_node)
 		if cur_node.parent.sons[0]==cur_node:
 			if len(cur_node.parent.sons[1].keys)>least:
 				cur_node.sons.append(cur_node.parent.sons[1].sons.pop(0))
@@ -219,6 +215,8 @@ def delete(node,key):
 				for i in range(len(cur_node.parent.sons[1].keys)):
 					cur_node.sons.append(cur_node.parent.sons[1].sons[i])
 					cur_node.keys.append(cur_node.parent.sons[1].keys[i])
+				if cur_node.right.right!=None:
+					cur_node.right.right.left = cur_node
 				cur_node.right = cur_node.right.right
 				delete_node(cur_node.parent,0)
 		else:
@@ -231,6 +229,8 @@ def delete(node,key):
 				for i in range(len(cur_node.keys)):
 					cur_node.parent.sons[id].sons.append(cur_node.sons[i])
 					cur_node.parent.sons[id].keys.append(cur_node.keys[i])
+				if cur_node.right!=None:
+					cur_node.right.left = cur_node.left
 				cur_node.left.right = cur_node.right
 				delete_node(cur_node.parent,id)
 
@@ -240,41 +240,37 @@ def get_leftest_child(node):
 		tnode = tnode.sons[0] 
 	return tnode
 
-def get_data_list_right(node, bad = None):
-	l = []
-	for index,x in enumerate(node.sons):
-		if not node.keys[index]==bad:
-			l.append(x)
+def print_list(node):
+	for x in node.keys:
+		print(x,end=' ')
 	if node.right!=None:
-		l+=get_data_list_right(node.right,bad)
-	return l
+		print_list(node.right)
+
+prev = None
+def maintain_left_right_pointer(node):
+	global prev
+	if node!=None:
+		if node.is_leaf:
+			if prev!=None:
+				prev.right = node
+				node.left = prev
+			prev = node
+		else:
+			for x in node.sons:
+				maintain_left_right_pointer(x)
+	node.right = None
 
 def get_rightest_child(node):
 	tnode = node
 	while not tnode.is_leaf:
-		tnode = tnode.sons[-1] 
+		tnode = tnode.sons[-1]
 	return tnode
-
-def get_data_list_left(node, bad = None):
-	l = []
-	for index,x in enumerate(node.sons):
-		if not node.keys[index]==bad:
-			l.append(x)
-	if node.left!=None:
-		l+=get_data_list_left(node.left,bad)
-	return l
-
-def prt(node):
-	for x in node.keys:
-		print(x,end=' ')
-	if node.right != None:	
-		prt(node.right)
-
-def prtl(node):
-	for x in node.keys:
+	
+def print_l_list(node):
+	for x in reversed(node.keys):
 		print(x,end=' ')
 	if node.left != None:	
-		prtl(node.left)
+		print_l_list(node.left)
 
 def init():
 	file_list = os.listdir(path)

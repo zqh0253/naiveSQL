@@ -1,1 +1,1 @@
-{"dorm": {"primary": 0, "columns": {"sid": ["int", 0, [" "], 1], "score": ["float", 0, [], 0], "h": ["int", 0, [], 0]}}, "zqh": {"primary": 0, "columns": {"x": ["int", 0, [" "], 1]}}, "qq": {"primary": 0, "columns": {"x": ["int", 0, [" "], 1]}}}
+{}

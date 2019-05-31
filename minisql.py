@@ -5,6 +5,7 @@ import sys
 import re
 import datetime
 import ApiManager.api
+import traceback
 
 def clock(func):
     def int_time(*args, **kwargs):
@@ -76,6 +77,7 @@ class miniSQL(cmd.Cmd):
 			eval('ApiManager.api.'+symbol)(words)
 		except Exception as e:
 			print(str(e))
+			# traceback.print_exc()
 
 	def init(self):
 		ApiManager.api.init()
