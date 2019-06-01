@@ -1,7 +1,6 @@
 import os
 import math
 import json
-import CatalogManager.catalog
 
 path = 'D:/work/cs/db/minisql/naiveSQL/dbfile/index/'
 fp = {}
@@ -300,8 +299,7 @@ def create_table(tablename,indexname):
 	prev = None
 	maintain_left_right_pointer(treeroot[tablename+'_'+indexname])
 
-def delete_table(tablename):
-	list = CatalogManager.catalog.get_index_list(tablename)
+def delete_table(tablename,list):
 	for indexname in list:
 		fp[tablename+'_'+indexname].close()
 		os.remove(path+tablename+'_'+indexname+'.ind')

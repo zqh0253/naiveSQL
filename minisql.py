@@ -13,7 +13,7 @@ def clock(func):
         func(*args, **kwargs)
         over_time = datetime.datetime.now() 
         total_time = (over_time-start_time).total_seconds()
-        print('Run successfully. Passed {} s'.format(total_time))
+        print('Ran successfully. Passed {} s'.format(total_time))
     return int_time
 
 class miniSQL(cmd.Cmd):
@@ -30,6 +30,11 @@ class miniSQL(cmd.Cmd):
 			content = [line.rstrip('\n') for line in f]
 			for command in content:
 				self.default(command)
+
+	def do_quit(self,line):
+		self.finalize()
+		print('goodbye')
+		sys.exit() 
 
 	def help_insert(self):
 		print('''
@@ -55,10 +60,6 @@ class miniSQL(cmd.Cmd):
 	@clock
 	def default(self, line):
 		args, symbol = line, line.split()[0]
-		if (symbol[:4]=="quit"):
-			self.finalize()
-			print('goodbye')
-			sys.exit() 
 		if (symbol not in ['select','create','drop','insert','delete','quit','execfile']):
 			print('Unrecognized command.')
 			return
