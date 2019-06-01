@@ -65,7 +65,7 @@ def create(words):
 def drop(words):
 	if words[1]=='table':
 		CatalogManager.catalog.exist_table(words[2], False)
-		IndexManager.index.delete_table(words[2],CatalogManager.catalog.get_index_list(tablename))
+		IndexManager.index.delete_table(words[2],CatalogManager.catalog.get_index_list(words[2]))
 		CatalogManager.catalog.delete_table(words[2])
 		RecordManager.record.delete_table(words[2])
 	elif words[1]=='index':

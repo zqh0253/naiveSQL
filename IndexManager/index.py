@@ -28,7 +28,7 @@ def load_tree_from_json(j,parent=None):
 	if j['is_leaf']==True:
 		node = Node(j['is_leaf'],j['keys'],j['sons']) 
 	else:
-		node = Node(j['is_leaf'],j['keys'],[create_tree_from_json(x) for x in j['sons']])
+		node = Node(j['is_leaf'],j['keys'],[load_tree_from_json(x) for x in j['sons']])
 		for son in node.sons:
 			son.parent = node
 	return node
@@ -333,6 +333,24 @@ def insert_entry(tablename,indexname, key, data):
 	# prt(get_leftest_child(treeroot[tablename+'_'+indexname]))
 	# print('---------------------------')
 	# prtl(get_rightest_child(treeroot[tablename+'_'+indexname]))
+
+def get_data_list_right(node, value):
+	res = []
+	for index,x in enumerate(node.keys):
+		if x!=value:
+			res.append(node.sons[index])
+	if node.right!=None:
+		res += get_data_list_right(node.right,value)
+	return res
+	
+def get_data_list_left(node):
+	res = []
+	for x in node.sons:
+		res.append(x)
+	if node.left!=None:
+		res += get_data_list_left(node.left)
+	return res
+
 
 def select(tablename, clause, indexname):
 	res,value = [],eval(clause[2])

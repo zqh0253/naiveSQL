@@ -6,8 +6,6 @@ Windows
 
 python 3.6.4
 
-(某些不规范语法例如文件io在Linux还没有适配；一些语句在python其他版本中的准确性也有待考证)
-
 ## to-do list
 
 

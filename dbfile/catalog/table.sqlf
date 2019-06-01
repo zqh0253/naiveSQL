@@ -1,1 +1,1 @@
-{"student": {"primary": 0, "columns": {"sid": ["int", 0, [" "], 1], "name": ["char", 40, [], 0], "height": ["float", 0, [], 0]}}}
+{}

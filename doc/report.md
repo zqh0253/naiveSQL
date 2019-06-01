@@ -399,4 +399,75 @@ if __name__ == '__main__':
      	return cache[tablename+'\0'+str(where)]
      ```
   
-     
+
+
+
+## 测试
+
++ 创建表格
+
+![1559399920912](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559399920912.png)
+
++ 插入数据
+
+![1559400025059](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400025059.png)
+
++ 查询
+
+  + 全部查询
+
+    ![1559400061655](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400061655.png)
+
+  + 等值查询
+
+    ![1559400095000](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400095000.png)
+
+  + 多个查询语句连接
+
+    ![1559400492414](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400492414.png)
+
++ 删除记录
+
+  + 按条件删除
+
+    ![1559400558850](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400558850.png)
+
+  + 全部删除
+
+    ![1559400627570](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400627570.png)
+
++ 通过程序创建大样本进行测试：
+
+  + 创建样本脚本
+
+    ```python
+    import random
+    
+    N = 100
+    fp = open('sql.txt','a+')
+    key = []
+    
+    fp.seek(0)
+    fp.truncate()
+    fp.write ('create table qq (sid int,point float,primary key sid);\n')
+    for i in range(N):
+    	while 1:
+    		k = random.randint(1,10*N)
+    		if k not in key:
+    			key.append(k)
+    			break
+    	fp.write('insert into qq values ({},{});\n'.format(k,random.random()))	
+    for i in range(N//2):
+    	k = random.choice(key)
+    	fp.write('delete from qq where sid = {};\n'.format(k))
+    	key.remove(k)
+    
+    fp.write ('select * from qq;\ndrop table qq;\n')
+    fp.close()
+    ```
+
+    执行生成脚本：
+
+    ![1559400877739](C:\Users\10216\AppData\Roaming\Typora\typora-user-images\1559400877739.png)
+
+    N = 100, 1000, 5000 均通过了测试，程序在大数据中表现稳定。

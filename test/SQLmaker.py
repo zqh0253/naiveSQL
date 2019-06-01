@@ -1,6 +1,6 @@
 import random
 
-N = 38
+N = 1000
 fp = open('sql.txt','a+')
 key = []
 
