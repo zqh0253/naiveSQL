@@ -2,8 +2,6 @@
 
 ## env
 
-Windows
-
 python 3.6.4
 
 ## to-do list
@@ -17,15 +15,15 @@ python 3.6.4
 - [x] drop
 - [x] 非index的select操作以及多个select操作的连接
 - [x] delete
-- [x] b+ 删除时候parent维护
+- [x] b+ Tree 删除parent的维护操作
 - [x] output 美化
 - [x] do execfile
 - [x] help command
-- [ ] **理解正向肯定预查**
-- [ ] **[python decorator](https://www.cnblogs.com/cicaday/p/python-decorator.html )**
+- [x] **理解正向肯定预查**
+- [x] **[python decorator](https://www.cnblogs.com/cicaday/p/python-decorator.html )**
 - [x] 插入了相同key引发冲突会有bug 后续select有问题。（连续执行两次sql.txt）
-- [ ] 规范文件io
-- [ ] report完成
+- [x] 规范文件io
+- [x] report完成
 
 
 
